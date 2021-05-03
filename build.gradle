@@ -1,0 +1,40 @@
+plugins {
+  id 'distribution'
+}
+
+Properties props = new Properties()
+props.load(new FileInputStream('project.properties'))
+props.each { prop -> project.ext.set(prop.key, prop.value) }
+
+project.version = "${VERSION}"
+
+tasks.getByPath(':native:prepare').mustRunAfter(':lib:compileJava')
+tasks.getByPath(':lib:test').mustRunAfter(':native:build')
+
+distributions {
+  main {
+    contents {
+      into('dist') {
+        from project(':lib').jar
+        from project(':native').build
+      }
+    }
+  }
+}
+
+distTar {
+  dependsOn ':native:build'
+  dependsOn ':lib:build'
+  compression = Compression.GZIP
+  archiveExtension = "tar.gz"
+}
+
+distZip {
+  dependsOn ':native:build'
+  dependsOn ':lib:build'
+}
+
+clean {
+  dependsOn ':native:clean'
+  dependsOn ':lib:clean'
+}

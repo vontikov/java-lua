@@ -1,0 +1,20 @@
+tasks.register('prepare', Exec) {
+  commandLine "cmake", "-S", "${projectDir}/src",  "-B", "${buildDir}"
+}
+
+tasks.register('build', Exec) {
+  dependsOn prepare
+  workingDir buildDir
+  commandLine "cmake", "--build", "."
+  outputs.dir "${buildDir}/dist"
+}
+
+tasks.register('test', Exec) {
+  dependsOn build
+  workingDir buildDir
+  commandLine "ctest"
+}
+
+tasks.register('clean') {
+  delete buildDir
+}

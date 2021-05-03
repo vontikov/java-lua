@@ -1,0 +1,12 @@
+# Gradle
+.gradle
+build
+
+# IDE
+.project
+.settings/
+bin/
+
+# Vim
+*.swo
+*.swp

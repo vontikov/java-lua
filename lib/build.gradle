@@ -1,0 +1,42 @@
+plugins {
+  id 'java-library'
+}
+
+repositories {
+  mavenCentral()
+}
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+def nativeDir = project(':native').projectDir
+
+compileJava.doLast {
+  copy {
+    from "${buildDir}/generated/sources/headers/java/main"
+    into "${nativeDir}/src/include"
+  }
+}
+
+tasks.named('test') {
+  systemProperty "java.library.path", "${nativeDir}/build/dist"
+  useJUnitPlatform()
+}
+
+dependencies {
+  api 'com.github.spotbugs:spotbugs-annotations:4.2.3'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+}
+
+tasks.named('jar') {
+  manifest {
+    attributes(
+      'Implementation-Title': "${rootProject.name}",
+      'Implementation-Version': "${rootProject.version}",
+      'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
+      'Automatic-Module-Name': 'com.github.vontikov.jl',
+    )
+  }
+  baseName "${rootProject.name}-${rootProject.version}"
+}
