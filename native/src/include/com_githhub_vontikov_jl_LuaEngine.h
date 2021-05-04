@@ -36,7 +36,23 @@ JNIEXPORT void JNICALL Java_com_githhub_vontikov_jl_LuaEngine_logLevel
  * Method:    exec
  * Signature: (Ljava/lang/String;)I
  */
-JNIEXPORT jint JNICALL Java_com_githhub_vontikov_jl_LuaEngine_exec
+JNIEXPORT jint JNICALL Java_com_githhub_vontikov_jl_LuaEngine_exec__Ljava_lang_String_2
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     com_githhub_vontikov_jl_LuaEngine
+ * Method:    exec
+ * Signature: ()I
+ */
+JNIEXPORT jint JNICALL Java_com_githhub_vontikov_jl_LuaEngine_exec__
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_githhub_vontikov_jl_LuaEngine
+ * Method:    loadScript
+ * Signature: (Ljava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_com_githhub_vontikov_jl_LuaEngine_loadScript
   (JNIEnv *, jobject, jstring);
 
 /*

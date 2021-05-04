@@ -13,17 +13,17 @@ Wrapper::Wrapper(JNIEnv *env, jclass clazz, jobject obj)
 
   spdlog::cfg::load_env_levels();
 
-  m_lua_state = luaL_newstate();
-  luaL_openlibs(m_lua_state);
+  L = luaL_newstate();
+  luaL_openlibs(L);
 
-  lua_pushnumber(m_lua_state, reinterpret_cast<long>(this));
-  lua_setglobal(m_lua_state, SELF_GLOBAL);
+  lua_pushnumber(L, reinterpret_cast<long>(this));
+  lua_setglobal(L, SELF_GLOBAL);
 
   m_logger->info("created");
 }
 
 Wrapper::~Wrapper() {
-  lua_close(m_lua_state);
+  lua_close(L);
   m_logger->info("desroyed");
 }
 
@@ -52,33 +52,59 @@ std::tuple<JNIEnv *, jclass, jobject> Wrapper::handle() const {
 }
 
 void Wrapper::registerFunctions(const char *ns, const luaL_Reg *funcs) {
-  lua_newtable(m_lua_state);
-  luaL_setfuncs(m_lua_state, funcs, 0);
-  lua_setglobal(m_lua_state, ns);
+  lua_newtable(L);
+  luaL_setfuncs(L, funcs, 0);
+  lua_setglobal(L, ns);
 }
 
-int Wrapper::exec(const char *script, const int size) {
-  if (auto r = luaL_loadbuffer(m_lua_state, script, size, script); r != 0) {
-    auto m = lua_tostring(m_lua_state, -1);
-    m_logger->error("loadbuffer(): code={}, message={}", r, m);
+int Wrapper::exec(const char *script) {
+  if (auto r = load(script); r) {
     return r;
+  }
+  return exec();
+}
+
+int Wrapper::load(const char *script) {
+  if (m_logger->should_log(spdlog::level::trace)) {
+    m_logger->trace("load script:\n'''\n{}\n'''", script);
+  }
+
+  if (auto r = luaL_loadstring(L, script); r) {
+    auto errMsg = lua_tostring(L, -1);
+    m_logger->error("loadbuffer(): code={}, message={}", r, errMsg);
+    this->error(errMsg);
+    return r;
+  }
+  return LUA_OK;
+}
+
+int Wrapper::exec() {
+  const auto top = lua_gettop(L);
+  if (!top) {
+    constexpr auto errMsg = "no script to execute";
+    m_logger->error(errMsg);
+    this->error(errMsg);
+    return LUA_ERRRUN;
   }
 
   if (m_logger->should_log(spdlog::level::trace)) {
-    m_logger->trace("execute script: size={}, source=\n'''\n{}\n'''", size,
-                    script);
+    m_logger->trace("execute script: top={}", top);
   }
-  auto r = lua_pcall(m_lua_state, 0, 0, 0);
-  if (r != 0) {
-    auto m = lua_tostring(m_lua_state, -1);
-    m_logger->error("pcall(): code={}, message={}", r, m);
+  lua_pushvalue(L, -1);
+  if (auto r = lua_pcall(L, 0, 0, 0); r) {
+    auto errMsg = lua_tostring(L, -1);
+    m_logger->error("pcall(): code={}, message={}", r, errMsg);
+    this->error(errMsg);
+    return r;
   }
-  return r;
+  return LUA_OK;
 }
 
 void Wrapper::error(const std::string v) { m_error = v; }
 
 const std::string &Wrapper::error() const { return m_error; }
+
+lua_State *Wrapper::state() const { return L; }
 
 Wrapper *get(JNIEnv *env, jobject jo) {
   constexpr auto objFieldName = "np";

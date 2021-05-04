@@ -27,10 +27,12 @@ add_library(jl SHARED
 add_dependencies(jl lua)
 add_dependencies(jl spdlog)
 
-target_include_directories(jl PRIVATE ${JNI_INCLUDE_DIRS})
-target_include_directories(jl PRIVATE ${LUA_INCLUDE_DIRS})
-target_include_directories(jl PRIVATE ${SPDLOG_INCLUDE_DIRS})
-target_include_directories(jl PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(jl PRIVATE
+  ${JNI_INCLUDE_DIRS}
+  ${LUA_INCLUDE_DIRS}
+  ${SPDLOG_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 target_link_libraries(jl
   ${CMAKE_DL_LIBS}
@@ -40,14 +42,25 @@ target_link_libraries(jl
 
 if(BUILD_TESTING)
   enable_testing()
+  list(APPEND CMAKE_CTEST_ARGUMENTS "--output-on-failure")
   add_subdirectory(third_party/google-test)
   add_executable(tests
-    tests/example_test.cpp
+    tests/wrapper_test.cpp
+  )
+  target_include_directories(tests PRIVATE
+    ${JNI_INCLUDE_DIRS}
+    ${LUA_INCLUDE_DIRS}
+    ${SPDLOG_INCLUDE_DIRS}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/bridge
   )
   target_link_libraries(tests
-    jl
     GTest::GTest
     GTest::Main
+    jl
   )
   add_test(test_all tests)
+  set_tests_properties(test_all PROPERTIES
+    ENVIRONMENT LD_LIBRARY_PATH=${DIST_DIRS}
+  )
 endif()

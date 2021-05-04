@@ -27,11 +27,17 @@ public:
 
   void registerFunctions(const char *ns, const luaL_Reg *funcs);
 
-  int exec(const char *script, const int scriptSize);
+  int exec(const char *);
+
+  int exec();
+
+  int load(const char *);
 
   void error(const std::string error);
 
   const std::string& error() const;
+
+  lua_State *state() const;
 
 private:
   JNIEnv *m_jenv;
@@ -39,7 +45,7 @@ private:
   jobject m_jobject;
 
   std::shared_ptr<spdlog::logger> m_logger;
-  lua_State *m_lua_state;
+  lua_State *L;
   std::string m_error{""};
 };
 

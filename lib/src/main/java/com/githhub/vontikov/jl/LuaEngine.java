@@ -61,13 +61,40 @@ public class LuaEngine implements AutoCloseable {
     }
 
     /**
-     * Executes the lua script
+     * Loads Lua script.
+     * 
+     * Appends the script to the already loaded script (if any).
      *
-     * @param script
+     * @param script the script to load
+     * @throws ExecutionException
+     */
+    public void load(final String script) throws ExecutionException {
+        final int r = loadScript(script);
+        if (r != 0) {
+            throw new ExecutionException(r, getLastError());
+        }
+    }
+
+    /**
+     * Loads and executes Lua script.
+     *
+     * @param script the script to load and execute
      * @throws ExecutionException
      */
     public void execute(final String script) throws ExecutionException {
         final int r = exec(script);
+        if (r != 0) {
+            throw new ExecutionException(r, getLastError());
+        }
+    }
+
+    /**
+     * Executes previously loaded Lua script.
+     *
+     * @throws ExecutionException
+     */
+    public void execute() throws ExecutionException {
+        final int r = exec();
         if (r != 0) {
             throw new ExecutionException(r, getLastError());
         }
@@ -100,6 +127,10 @@ public class LuaEngine implements AutoCloseable {
     private native void logLevel(final String level);
 
     private native int exec(final String script);
+
+    private native int exec();
+
+    private native int loadScript(final String script);
 
     private native String getLastError();
 }

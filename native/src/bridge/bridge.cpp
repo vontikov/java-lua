@@ -43,7 +43,7 @@ JNIEXPORT void JNICALL Java_com_githhub_vontikov_jl_LuaEngine_logLevel(
   l->logLevel(level);
 }
 
-JNIEXPORT jint JNICALL Java_com_githhub_vontikov_jl_LuaEngine_exec(
+JNIEXPORT jint JNICALL Java_com_githhub_vontikov_jl_LuaEngine_exec__Ljava_lang_String_2(
     JNIEnv *env, jobject jo, jstring script) {
   auto l = lua::get(env, jo);
   if (!l) {
@@ -51,7 +51,30 @@ JNIEXPORT jint JNICALL Java_com_githhub_vontikov_jl_LuaEngine_exec(
     return 0;
   }
   const char *s = env->GetStringUTFChars(script, 0);
-  const auto r = l->exec(s, static_cast<int>(env->GetStringLength(script)));
+  const auto r = l->exec(s);
+  env->ReleaseStringUTFChars(script, s);
+  return static_cast<jint>(r);
+}
+
+JNIEXPORT jint JNICALL Java_com_githhub_vontikov_jl_LuaEngine_exec__(
+    JNIEnv *env, jobject jo) {
+  auto l = lua::get(env, jo);
+  if (!l) {
+    throwRuntimeException(env, "lua wrapper");
+    return 0;
+  }
+  return static_cast<jint>(l->exec());
+}
+
+JNIEXPORT jint JNICALL Java_com_githhub_vontikov_jl_LuaEngine_loadScript(
+    JNIEnv *env, jobject jo, jstring script) {
+  auto l = lua::get(env, jo);
+  if (!l) {
+    throwRuntimeException(env, "lua wrapper");
+    return 0;
+  }
+  const char *s = env->GetStringUTFChars(script, 0);
+  const auto r = l->load(s);
   env->ReleaseStringUTFChars(script, s);
   return static_cast<jint>(r);
 }
