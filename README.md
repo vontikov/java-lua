@@ -3,7 +3,50 @@
 Provides the ability to execute [Lua 5.4.3](https://www.lua.org/about.html)
 scripts from Java.
 
-The Lua scripts can call previously registered Java functions (see unit tests).
+The Lua scripts can call registered in a namespace Java functions (see unit tests).
+
+```
+    final String script =
+            "r = java:fn(42, 'xyz')\n" +
+            "print('call result: ', r) -- prints 100\n" +
+
+            "r = ns:func('abc', 42, true, false)\n" +
+            "print('call result: ', r) -- prints 200\n";
+
+      try (final LuaEngine e = new LuaEngine()) {
+
+          // register function in the default namespace 'java'
+          e.registerFunction("fn", (Object... args) -> {
+              // do something
+              ...
+
+              // return call result to the script
+              return 100;
+          });
+
+          // register external function in the custom namespace 'ns1'
+          e.registerFunction("ns", "func", (Object... args) -> {
+              // do something
+              ...
+
+              // return call result to the script
+              return 200;
+          });
+
+          // load and execute
+          e.execute(script);
+
+          // ... or load
+          e.load(script);
+          // and execute
+          e.execute();
+
+          ...
+
+          // execute again
+          e.execute();
+      }
+```
 
 ## Build
 

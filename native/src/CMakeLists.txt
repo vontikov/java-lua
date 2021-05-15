@@ -20,18 +20,19 @@ add_subdirectory(third_party/lua)
 
 add_library(jl SHARED
   bridge/bridge.cpp
+  bridge/jni_helpers.cpp
+  bridge/lua_helpers.cpp
   bridge/wrapper.cpp
-  bridge/helpers.cpp
 )
 
 add_dependencies(jl lua)
 add_dependencies(jl spdlog)
 
 target_include_directories(jl PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${JNI_INCLUDE_DIRS}
   ${LUA_INCLUDE_DIRS}
   ${SPDLOG_INCLUDE_DIRS}
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_link_libraries(jl
@@ -46,21 +47,25 @@ if(BUILD_TESTING)
   add_subdirectory(third_party/google-test)
   add_executable(tests
     tests/wrapper_test.cpp
+    tests/test_helpers.cpp
+    bridge/lua_helpers.cpp
   )
   target_include_directories(tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/bridge
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${JNI_INCLUDE_DIRS}
     ${LUA_INCLUDE_DIRS}
     ${SPDLOG_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/bridge
   )
-  target_link_libraries(tests
+  target_link_libraries(tests PUBLIC
+    ${JNI_LIBRARIES}
     GTest::GTest
     GTest::Main
     jl
   )
   add_test(test_all tests)
+  get_filename_component(JVMPATH ${JAVA_JVM_LIBRARY} DIRECTORY )
   set_tests_properties(test_all PROPERTIES
-    ENVIRONMENT LD_LIBRARY_PATH=${DIST_DIRS}
+    ENVIRONMENT LD_LIBRARY_PATH=${DIST_DIRS}:${JVMPATH}
   )
 endif()

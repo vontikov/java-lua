@@ -18,3 +18,8 @@ tasks.register('test', Exec) {
 tasks.register('clean') {
   delete buildDir
 }
+
+tasks.named('build') {
+  inputs.files(fileTree(dir: "${projectDir}/src").matching { include '**/*' })
+}
+

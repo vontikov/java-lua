@@ -21,7 +21,9 @@ public class LuaEngine implements AutoCloseable {
         System.loadLibrary("jl");
     }
 
-    private final Map<String, Function> functions = new HashMap<>();
+    private static final String DEFAULT_NS = "java";
+
+    private final Map<String, Map<String, Function>> functions = new HashMap<>();
 
     // native wrapper pointer.
     private final long np;
@@ -57,12 +59,17 @@ public class LuaEngine implements AutoCloseable {
      * @param func the function.
      */
     public void registerFunction(final String name, final Function func) {
-        functions.put(name, func);
+        registerFunction(DEFAULT_NS, name, func);
+    }
+
+    public void registerFunction(final String ns, final String name, final Function func) {
+        functions.computeIfAbsent(ns, k -> new HashMap<>()).put(name, func);
+        registerFunction(ns, name);
     }
 
     /**
      * Loads Lua script.
-     * 
+     *
      * Appends the script to the already loaded script (if any).
      *
      * @param script the script to load
@@ -106,31 +113,34 @@ public class LuaEngine implements AutoCloseable {
      * @param args the first argument is a registered function name, the rest (if
      *             any) are passed to the function.
      * @return an arbitrary code returned back to the caller.
-     * @throws FunctionException
      */
-    private int callback(Object... args) throws FunctionException {
-        assert (args.length > 0);
+    private int callback(Object... args) {
+        assert (args.length > 1);
+        // namespace
         assert (args[0] instanceof String);
+        // function name
+        assert (args[1] instanceof String);
 
-        final String fn = (String) args[0];
-        final Function callback = functions.get(fn);
-        if (callback == null) {
-            throw new FunctionException(String.format("function not found: %s", fn));
-        }
-        return callback.apply(Arrays.copyOfRange(args, 1, args.length));
+        final String ns = (String) args[0];
+        final String fn = (String) args[1];
+
+        final Function cb = functions.get(ns).get(fn);
+        return cb.apply(Arrays.copyOfRange(args, 2, args.length));
     }
 
-    private native long init();
+    private native long init() throws RuntimeException;
 
-    private native void destroy();
+    private native void destroy() throws RuntimeException;;
 
-    private native void logLevel(final String level);
+    private native void logLevel(final String level) throws RuntimeException;;
 
-    private native int exec(final String script);
+    private native void registerFunction(final String ns, final String fn) throws RuntimeException;
 
-    private native int exec();
+    private native int exec(final String script) throws RuntimeException;;
 
-    private native int loadScript(final String script);
+    private native int exec() throws RuntimeException;;
 
-    private native String getLastError();
+    private native int loadScript(final String script) throws RuntimeException;;
+
+    private native String getLastError() throws RuntimeException;;
 }

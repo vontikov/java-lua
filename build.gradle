@@ -9,7 +9,8 @@ props.each { prop -> project.ext.set(prop.key, prop.value) }
 project.version = "${VERSION}"
 
 tasks.getByPath(':native:prepare').mustRunAfter(':lib:compileJava')
-tasks.getByPath(':lib:test').mustRunAfter(':native:build')
+tasks.getByPath(':lib:build').mustRunAfter(':native:build')
+tasks.getByPath(':lib:test').mustRunAfter(':native:test')
 
 distributions {
   main {
