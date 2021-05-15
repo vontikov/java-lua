@@ -3,7 +3,7 @@
 Provides the ability to execute [Lua 5.4.3](https://www.lua.org/about.html)
 scripts from Java.
 
-The Lua scripts can call registered in a namespace Java functions (see unit tests).
+Lua scripts can call registered in a namespace Java functions:
 
 ```
     final String script =
@@ -47,6 +47,7 @@ The Lua scripts can call registered in a namespace Java functions (see unit test
           e.execute();
       }
 ```
+See Java unit tests for the details
 
 ## Build
 
