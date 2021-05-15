@@ -24,7 +24,7 @@ Lua scripts can call registered in a namespace Java functions:
               return 100;
           });
 
-          // register external function in the custom namespace 'ns1'
+          // register external function in the custom namespace 'ns'
           e.registerFunction("ns", "func", (Object... args) -> {
               // do something
               ...
